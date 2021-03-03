@@ -24,7 +24,7 @@ const StyledGrip = styled(MdDragHandle)`
 	}
 `;
 
-const Grip = React.forwardRef((props, ref) => (
+const Grip = React.forwardRef((props, ref: any) => (
 	<div ref={ref} style={{display: "flex", touchAction: "none"}}>
 		<StyledGrip />
 	</div>

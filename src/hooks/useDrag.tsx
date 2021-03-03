@@ -26,8 +26,8 @@ export interface dragState {
 }
 
 export default function useDrag({ draggableRef, handleRef }: useDragProps) {
-	const dRef: React.MutableRefObject<null> = useRef(null);
-	const hRef: React.MutableRefObject<null> = useRef(null);
+	const dRef: any = useRef(null);
+	const hRef: any = useRef(null);
 
 	const [dragState, setDragState] = useState({
 		isDragging: false,
@@ -146,14 +146,14 @@ export default function useDrag({ draggableRef, handleRef }: useDragProps) {
 			onStop();
 		}
 
-		if (dragState.draggedBy == 1) {
+		if (dragState.draggedBy === 1) {
 			document.addEventListener("mousemove", onMouseMove);
 			// console.log("added mousemove");
 			document.addEventListener("mouseup", onMouseUp);
 			// console.log("added mouseup");
 		}
 
-		if (dragState.draggedBy == 2) {
+		if (dragState.draggedBy === 2) {
 			document.addEventListener("touchmove", onTouchMove, {
 				passive: false,
 			});
@@ -175,13 +175,13 @@ export default function useDrag({ draggableRef, handleRef }: useDragProps) {
 			document.removeEventListener("touchend", onTouchEnd);
 			// console.log("removed touchend in cleanup");
 		};
-	}, [dragState.draggedBy]);
+	}, [dragState.draggedBy, dragState.clickX, dragState.clickY]);
 
 	const updateDNDStore = useRef(
 		throttle((x, y) => {
 			let elements = document.elementsFromPoint(x, y);
 			let drop: Element | undefined;
-			elements.map((el) => {
+			elements.forEach((el) => {
 				if (drop === undefined && el?.getAttribute("data-dropid")) {
 					drop = el;
 				}

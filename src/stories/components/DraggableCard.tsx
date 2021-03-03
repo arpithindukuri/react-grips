@@ -37,13 +37,13 @@ const Title = styled.h2`
 `;
 
 export default function Card(props: CardProps) {
-	const [dragRef, handleRef, dragstate] = useDrag({});
+	const [dragRef, handleRef] = useDrag({});
 
 	return (
 		<Container ref={dragRef}>
 			<Header>
 				<Title>{props.title}</Title>
-				<Grip />
+				<Grip ref={handleRef}/>
 			</Header>
 			{props.children}
 		</Container>

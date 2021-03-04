@@ -1,37 +1,23 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { throttle } from "lodash";
 
-export interface useDragProps {
-	/**
-	 * The element(s) to be dragged.
-	 */
-	draggableRef?: React.MutableRefObject<any>[];
+import {
+	useDragPropTypes,
+	draggedByTypes,
+	dragStateTypes,
+	useDragReturnTypes,
+} from "src/types/dragTypes";
 
-	/**
-	 * The handle by which this element(s) must be dragged.
-	 */
-	handleRef?: React.MutableRefObject<any>[];
-}
+export default function useDrag({
+	draggableRef,
+	handleRef,
+}: useDragPropTypes): useDragReturnTypes {
+	const hRef = useRef<HTMLDivElement | null>(null);
+	const dRef = useRef<HTMLDivElement | null>(null);
 
-export interface dragState {
-	isDragging: Boolean;
-	draggedBy: 0 | 1 | 2; // 0 = no drag, 1 = mouse drag, 2 = touch drag
-	clickX: Number;
-	clickY: Number;
-	currentX: Number;
-	currentY: Number;
-	deltaX: Number;
-	deltaY: Number;
-	hoverID: String;
-}
-
-export default function useDrag({ draggableRef, handleRef }: useDragProps) {
-	const dRef: any = useRef(null);
-	const hRef: any = useRef(null);
-
-	const [dragState, setDragState] = useState({
+	const [dragState, setDragState] = useState<dragStateTypes>({
 		isDragging: false,
-		draggedBy: 0, // 0 = no drag, 1 = mouse drag, 2 = touch drag
+		draggedBy: 0,
 		clickX: 0,
 		clickY: 0,
 		currentX: 0,
@@ -43,15 +29,15 @@ export default function useDrag({ draggableRef, handleRef }: useDragProps) {
 
 	//---------- UPDATE REF IF IT CHANGES ----------//
 	useEffect(() => {
-		if (draggableRef && dRef.current !== draggableRef[0].current)
-			dRef.current = draggableRef[0].current;
-		if (handleRef && hRef.current !== handleRef[0].current)
-			hRef.current = handleRef[0].current;
+		if (draggableRef && dRef.current !== draggableRef.current)
+			dRef.current = draggableRef.current;
+		if (handleRef && hRef.current !== handleRef.current)
+			hRef.current = handleRef.current;
 	}, [draggableRef, handleRef]);
 
 	//---------- ADD START EVENT LISTENERS ----------//
 	useEffect(() => {
-		function onStart(e: MouseEvent | Touch, i: number) {
+		function onStart(e: MouseEvent | Touch, i: draggedByTypes) {
 			// console.log("-------onStart-------");
 			setDragState((prev) => ({
 				...prev,
@@ -80,7 +66,7 @@ export default function useDrag({ draggableRef, handleRef }: useDragProps) {
 		// console.log(dRef, hRef);
 		const ref = hRef.current !== null ? hRef : dRef;
 
-		const node: any = ref.current;
+		const node = ref.current;
 
 		if (node) {
 			node.addEventListener("mousedown", onMouseDown);
@@ -197,7 +183,7 @@ export default function useDrag({ draggableRef, handleRef }: useDragProps) {
 
 	//---------- UPDATE TRANSFORM ----------//
 	useEffect(() => {
-		const node: any = dRef.current;
+		const node = dRef.current;
 		if (node) {
 			node.style.transform = `translate(${dragState.deltaX}px, ${dragState.deltaY}px)`;
 			node.style.zIndex = dragState.isDragging ? "5000" : "";
@@ -205,5 +191,5 @@ export default function useDrag({ draggableRef, handleRef }: useDragProps) {
 		updateDNDStore.current(dragState.currentX, dragState.currentY);
 	}, [dragState]);
 
-	return [dRef, hRef, dragState];
+	return { draggableRef: dRef, handleRef: hRef, dragState: dragState };
 }

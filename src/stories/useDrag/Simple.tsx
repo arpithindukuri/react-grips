@@ -1,5 +1,4 @@
-import React from "react";
-import DraggableCard from "./components/DraggableCard";
+import DraggableCard from "../components/DraggableCard";
 import styled from "styled-components";
 
 export default function Drag() {
@@ -7,6 +6,7 @@ export default function Drag() {
 		display: flex;
 		height: 100vh;
 		width: 100vw;
+		overflow: hidden;
 		align-items: center;
 		justify-content: center;
 		background-color: #f8f8f8;
@@ -16,8 +16,8 @@ export default function Drag() {
 		<Container>
 			<DraggableCard title='A Card!'>
 				<p>
-					blah blah blah <br /> more text <br /> even more text!!
-					<br /> whole bunch of text
+					text text text<br /> more text <br /> even more text!! (but longer)
+					<br /> text
 				</p>
 			</DraggableCard>
 		</Container>

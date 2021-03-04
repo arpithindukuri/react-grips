@@ -22,7 +22,11 @@ const Container = styled.div`
 	background-color: white;
 	padding: 2rem;
 	border-radius: 1rem;
-	border: 1px solid #ddd;
+	border: 1px solid #eee;
+	transition: 0.3s;
+	:hover {
+		transform: scale(1.1);
+	}
 `;
 
 const Header = styled.div`
@@ -37,13 +41,13 @@ const Title = styled.h2`
 `;
 
 export default function Card(props: CardProps) {
-	const [dragRef, handleRef] = useDrag({});
+	const { draggableRef, handleRef } = useDrag({});
 
 	return (
-		<Container ref={dragRef}>
+		<Container ref={draggableRef}>
 			<Header>
 				<Title>{props.title}</Title>
-				<Grip ref={handleRef}/>
+				<Grip ref={handleRef} />
 			</Header>
 			{props.children}
 		</Container>

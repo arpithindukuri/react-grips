@@ -21,8 +21,4 @@
     "jsx": "react-jsx",
     "baseUrl": "./",
   },
-  // "include": [
-  //   "./",
-  //   "src",
-  // ]
 }

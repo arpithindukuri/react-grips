@@ -1,19 +1,23 @@
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { throttle } from "lodash";
 
+import GripsContext from "../context/GripsContext";
 import {
 	useDragPropTypes,
 	draggedByTypes,
 	dragStateTypes,
 	useDragReturnTypes,
-} from "src/types/dragTypes";
+} from "../types/dragTypes";
 
 export default function useDrag({
 	draggableRef,
 	handleRef,
+	onDragStart,
 }: useDragPropTypes): useDragReturnTypes {
 	const hRef = useRef<HTMLDivElement | null>(null);
 	const dRef = useRef<HTMLDivElement | null>(null);
+
+	const { setHoverID, dropData, dragData } = useContext(GripsContext);
 
 	const [dragState, setDragState] = useState<dragStateTypes>({
 		isDragging: false,
@@ -27,6 +31,10 @@ export default function useDrag({
 		hoverID: "",
 	});
 
+	useEffect(() => {
+		dragState.isDragging && setHoverID(dragState.hoverID);
+	}, [dragState.isDragging, setHoverID, dragState.hoverID]);
+
 	//---------- UPDATE REF IF IT CHANGES ----------//
 	useEffect(() => {
 		if (draggableRef && dRef.current !== draggableRef.current)
@@ -37,8 +45,18 @@ export default function useDrag({
 
 	//---------- ADD START EVENT LISTENERS ----------//
 	useEffect(() => {
+		// console.log(dRef, hRef);
+		const ref = hRef.current !== null ? hRef : dRef;
+
+		const node = ref.current;
+
 		function onStart(e: MouseEvent | Touch, i: draggedByTypes) {
 			// console.log("-------onStart-------");
+
+			if (dRef.current) dRef.current.style.zIndex = "5000";
+
+			onDragStart && onDragStart();
+
 			setDragState((prev) => ({
 				...prev,
 				draggedBy: i,
@@ -63,11 +81,6 @@ export default function useDrag({
 			onStart(e.touches[0], 2);
 		}
 
-		// console.log(dRef, hRef);
-		const ref = hRef.current !== null ? hRef : dRef;
-
-		const node = ref.current;
-
 		if (node) {
 			node.addEventListener("mousedown", onMouseDown);
 			// console.log("added mousedown");
@@ -83,7 +96,7 @@ export default function useDrag({
 				// console.log("removed touchstart in cleanup");
 			}
 		};
-	}, [dRef, hRef]);
+	}, [dRef, hRef, onDragStart]);
 
 	//---------- UPDATE STATE ----------//
 	useEffect(() => {
@@ -91,13 +104,16 @@ export default function useDrag({
 			// console.log("-------onMove-------");
 			const X = e.pageX - dragState.clickX;
 			const Y = e.pageY - dragState.clickY;
-			setDragState((prev) => ({
-				...prev,
-				currentX: e.pageX,
-				currentY: e.pageY,
-				deltaX: X,
-				deltaY: Y,
-			}));
+			updateDropID.current(e.pageX, e.pageY);
+			setDragState((prev) => {
+				return {
+					...prev,
+					currentX: e.pageX,
+					currentY: e.pageY,
+					deltaX: X,
+					deltaY: Y,
+				};
+			});
 		}
 		function onMouseMove(e: MouseEvent) {
 			// console.log("-------onMouseMove-------");
@@ -112,6 +128,10 @@ export default function useDrag({
 
 		function onStop() {
 			// console.log("-------onStop-------");
+
+			dropData.dropHandlers[dragState.hoverID] &&
+				dropData.dropHandlers[dragState.hoverID](dragData);
+
 			setDragState((prev) => ({
 				...prev,
 				isDragging: false,
@@ -120,12 +140,20 @@ export default function useDrag({
 				deltaY: 0,
 				hoverID: "",
 			}));
+
+			setHoverID("");
+
+			setTimeout(() => {
+				if (dRef.current) dRef.current.style.zIndex = "unset";
+			}, 300);
 		}
+
 		function onMouseUp(e: MouseEvent) {
 			// console.log("-------onMouseUp-------");
 			e.preventDefault();
 			onStop();
 		}
+
 		function onTouchEnd(e: TouchEvent) {
 			// console.log("-------onTouchEnd-------");
 			e.preventDefault();
@@ -161,35 +189,58 @@ export default function useDrag({
 			document.removeEventListener("touchend", onTouchEnd);
 			// console.log("removed touchend in cleanup");
 		};
-	}, [dragState.draggedBy, dragState.clickX, dragState.clickY]);
+	}, [
+		dragState.draggedBy,
+		dragState.clickX,
+		dragState.clickY,
+		setHoverID,
+		dragState.hoverID,
+		dropData.dropHandlers,
+		dragData,
+	]);
 
-	const updateDNDStore = useRef(
+	const updateDropID = useRef(
 		throttle((x, y) => {
 			let elements = document.elementsFromPoint(x, y);
 			let drop: Element | undefined;
 			elements.forEach((el) => {
-				if (drop === undefined && el?.getAttribute("data-dropid")) {
+				if (
+					drop === undefined &&
+					el?.getAttribute("data-dropid") &&
+					el !== dRef.current
+				) {
 					drop = el;
 				}
 			});
-			if (drop !== undefined) {
-				setDragState((prev) => ({
+			// Below, we check for isDragging, because sometimes this callback gets run after onStop() is called
+			// giving incorrect state. This ensures that hoverID is set only if it should be, i.e. is dragging
+			setDragState((prev) => {
+				const h = prev.isDragging
+					? drop?.getAttribute("data-dropid") || ""
+					: "";
+				return {
 					...prev,
-					hoverID: drop?.getAttribute("data-dropid") || "",
-				}));
-			}
-		}, 128)
+					hoverID: h,
+				};
+			});
+		}, 256)
 	);
 
+	/**
+	 * Not using this anymore, because of performance reasons.
+	 * I suggest using React's style property instead,
+	 * with sragState.deltaX and dragState.deltaY.
+	 * React's style property seems to be the most performant way to do transforms, based on my tests.
+	 */
 	//---------- UPDATE TRANSFORM ----------//
-	useEffect(() => {
-		const node = dRef.current;
-		if (node) {
-			node.style.transform = `translate(${dragState.deltaX}px, ${dragState.deltaY}px)`;
-			node.style.zIndex = dragState.isDragging ? "5000" : "";
-		}
-		updateDNDStore.current(dragState.currentX, dragState.currentY);
-	}, [dragState]);
+	// useEffect(() => {
+	// 	const node = dRef.current;
+	// 	if (node) {
+	// 		node.style.transition = dragState.isDragging ? "0s" : "0.3s";
+	// 		node.style.transform = `translate(${dragState.deltaX}px, ${dragState.deltaY}px)`;
+	// 		node.style.zIndex = dragState.isDragging ? "5000" : "";
+	// 	}
+	// }, [dragState]);
 
 	return { draggableRef: dRef, handleRef: hRef, dragState: dragState };
 }

@@ -1,25 +1,20 @@
-import React from "react";
-// import Grip from "./Grip";
+import React, { useContext } from "react";
+import Grip from "./Grip";
 import styled from "styled-components";
 import useDrag from "../../hooks/useDrag";
+import GripsContext from "../../context/GripsContext";
 
-export interface CardProps {
+export interface DroppableProps {
+	/**
+	 * Card title
+	 */
 	title: string;
+
+	/**
+	 * Children held within this card
+	 */
 	children?: any;
 }
-
-// const Container = styled.div`
-// 	display: flex;
-// 	flex-direction: column;
-// 	width: 150px;
-// 	background-color: grey;
-// 	padding: 2rem;
-// 	border-radius: 1rem;
-// 	border: 1px solid #eee;
-// 	:hover {
-// 		transform: scale(1.1);
-// 	}
-// `;
 
 const Header = styled.div`
 	display: flex;
@@ -28,36 +23,47 @@ const Header = styled.div`
 	justify-content: space-between;
 `;
 
-export default function Card(props: CardProps) {
+export default function Drop(props: DroppableProps) {
+	const dropID = "drop1";
 	const { draggableRef, handleRef, dragState } = useDrag({});
+	const { hoverID } = useContext(GripsContext);
 
 	return (
 		<div
 			ref={draggableRef}
+			data-dropid={dropID}
 			style={{
 				display: "flex",
 				flexDirection: "column",
-				width: "150px",
-				backgroundColor: "white",
+				width: "200px",
+				height: "500px",
+				backgroundColor: "lightcoral",
 				padding: "2rem",
 				borderRadius: "1rem",
 				border: "1px solid #eee",
 				transition: dragState.isDragging ? "0s" : "0.3s",
 				transform: `translate(${dragState.deltaX}px, ${dragState.deltaY}px)`,
-				opacity: dragState.hoverID ? "0.5" : "unset",
 			}}
 		>
 			<Header>
 				<h2
-					ref={handleRef}
 					style={{
 						margin: 0,
+						color: "white",
 					}}
 				>
 					{props.title}
 				</h2>
-				{/* <Grip ref={handleRef} /> */}
+				<Grip ref={handleRef} />
 			</Header>
+			<div
+				style={{
+					display: hoverID === dropID ? "inline-block" : "none",
+					width: "100%",
+					height: "100px",
+					backgroundColor: "white",
+				}}
+			/>
 			{props.children}
 		</div>
 	);

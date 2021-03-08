@@ -1,0 +1,86 @@
+.Container {
+	display: flex;
+	height: 100vh;
+	width: 100vw;
+	overflow: hidden;
+	align-items: center;
+	justify-content: center;
+	background-color: #f8f8f8;
+}
+
+.Grab {
+	&:hover {
+		cursor: grab;
+	}
+	&:active {
+		cursor: grabbing;
+	}
+}
+
+.Card {
+	display: flex;
+	flex-direction: column;
+	width: 150px;
+	background-color: white;
+	padding: 2rem;
+	border-radius: 1rem;
+	box-shadow: 0 0 2rem 0 rgba($color: #000000, $alpha: 0.08);
+	transition: opacity 0.15s, transform 0.3s;
+}
+
+.Header {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
+}
+
+h2 {
+	margin: 0;
+}
+
+.Droppable {
+	margin: 4rem;
+	flex-direction: column;
+	overflow: auto;
+	width: 300px;
+	height: 500px;
+	background-color: lightblue;
+	padding: 2rem;
+	border-radius: 1rem;
+	box-shadow: 0 1rem 2rem 0 rgba($color: #000000, $alpha: 0.08);
+	transition: opacity 0.15s, transform 0.3s;
+	&:hover {
+		transform: scale(1.1);
+	}
+}
+
+.Placeholder {
+	width: 100%;
+	height: 100px;
+	display: flex;
+	overflow: hidden;
+	margin-top: 1rem;
+	margin-bottom: 1rem;
+	background-color: white;
+	transition: 0.15s;
+	align-items: center;
+	justify-content: center;
+	font-size: 2rem;
+	color: black;
+}
+
+.Item {
+	display: flex;
+	padding: 2rem;
+	background-color: white;
+	margin-bottom: 1rem;
+}
+
+.TransformTransition {
+	transition: opacity 0.15s, transform 0s;
+}
+
+.Opacity {
+	opacity: 0.5;
+}
